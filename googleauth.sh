@@ -1,8 +1,11 @@
 #!/bin/bash
 
-# Charger les variables d'environnement à partir du fichier .env
-if [ -f .env ]; then
-    export $(grep -v '^#' .env | xargs)
+# Obtenir le chemin absolu du répertoire contenant le script
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+# Charger les variables d'environnement à partir du fichier .env dans le répertoire du script
+if [ -f "$SCRIPT_DIR/.env" ]; then
+    export $(grep -v '^#' "$SCRIPT_DIR/.env" | xargs)
 fi
 
 # Requirement: sudo apt-get install oathtool
@@ -14,11 +17,9 @@ while IFS='=' read -r key value; do
     if [[ $key == *_KEY ]]; then
         service_name="${key%%_KEY}"
         service_name="$(echo "$service_name" | tr '[:upper:]' '[:lower:]')"
-        
-	# echo DEBUG $service_name
-	SERVICES[$service_name]=$value
+        SERVICES[$service_name]=$value
     fi
-done < .env
+done < "$SCRIPT_DIR/.env"
 
 function formatTime {
     current_time=$(date +"%H:%M:%S")
@@ -38,14 +39,9 @@ function formatTime {
     echo "-------------------"
 }
 
-
-function formatGA0 {
-    printf "%-12s %s\n" "$1" $(oathtool --totp -b "$2")
-}
-
 function formatGA {
-    # Supprimer tous les caractères non-alphanumériques (sauf = qui est valide en base32)
-    local clean_key=$(echo "$2" | tr -dc 'A-Za-z0-9=')
+    # Supprimer tous les espaces de la clé
+    local clean_key=$(echo "$2" | tr -d ' ')
     printf "%-12s %s\n" "$1" $(oathtool --totp -b "$clean_key")
 }
 
