@@ -1,3 +1,3 @@
 # Requis
 
-	sudo apt-get install oathtool
+sudo apt-get install oathtool
